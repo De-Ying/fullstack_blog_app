@@ -1,6 +1,11 @@
+import { BrowserRouter } from "react-router-dom";
+import Navbar from "./components/navbar.component";
+
 const App = () => {
   return (
-      <h1>FullStack Blog App</h1>
+    <BrowserRouter>
+      <Navbar />
+    </BrowserRouter>
   )
 }
 
