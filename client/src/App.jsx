@@ -1,11 +1,14 @@
-import { BrowserRouter } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/navbar.component";
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Navbar />
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Navbar />}>
+        <Route path="signin" element={<h1>Sign in page</h1>}></Route>
+        <Route path="signup" element={<h1>Sign up page</h1>}></Route>
+      </Route>
+    </Routes>
   )
 }
 
