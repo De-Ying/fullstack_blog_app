@@ -38,28 +38,39 @@ const generateUsername = async (email) => {
 export default {
   async signup(req, res) {
     try {
-      let { fullname, email = "", password } = req.body;
+      let { fullname, email, password } = req.body;
 
       // Validate user data from the frontend
-      if (fullname.length < 3) {
-        return res
-          .status(403)
-          .json({ errors: "Fullname must be at least 3 letters long" });
+      const isBlank = (value) => !value.trim();
+      const isInvalidEmail = (value) => !emailRegex.test(value);
+      const isInvalidPassword = (value) => !passwordRegex.test(value);
+
+      const validations = [
+        { condition: isBlank(fullname), message: "Fullname is not blank" },
+        {
+          condition: fullname.length < 3,
+          message: "Fullname must be at least 3 letters long",
+        },
+        { condition: isBlank(email), message: "Email is not blank" },
+        { condition: isInvalidEmail(email), message: "Email is invalid" },
+        { condition: isBlank(password), message: "Password is not blank" },
+        {
+          condition: isInvalidPassword(password),
+          message:
+            "Password should be 6 to 20 characters long with a numeric, 1 lowercase, and 1 uppercase letter",
+        },
+      ];
+
+      const emailExists = await User.exists({ "personal_info.email": email });
+
+      if (emailExists) {
+        return res.status(409).json({ errors: "Email already exists" });
       }
 
-      if (!email.length) {
-        return res.status(403).json({ errors: "Enter Email" });
-      }
+      const error = validations.find((validation) => validation.condition);
 
-      if (!emailRegex.test(email)) {
-        return res.status(403).json({ errors: "Email is invalid" });
-      }
-
-      if (!passwordRegex.test(password)) {
-        return res.status(403).json({
-          errors:
-            "Password should be 6 to 20 characters long with a numeric, 1 lowercase and 1 uppercase let!",
-        });
+      if (error) {
+        return res.status(403).json({ errors: error.message });
       }
 
       // Hash the password using bcrypt
@@ -79,10 +90,6 @@ export default {
       // Return the response with the formatted user data
       return res.status(200).json(formatDataToSend(savedUser));
     } catch (error) {
-      if (error.code === 11000) {
-        return res.status(500).json({ error: "Email already exists" });
-      }
-
       return res.status(500).json({ error: error.message });
     }
   },
