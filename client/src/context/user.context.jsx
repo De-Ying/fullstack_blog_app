@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import { getSessionValue } from "../common/session";
+import PropTypes from 'prop-types';
 
 export const UserContext = createContext();
 
@@ -26,5 +27,9 @@ const UserContextProvider = (props) => {
         </UserContext.Provider>
       );
 }
+
+UserContextProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 export default UserContextProvider;
