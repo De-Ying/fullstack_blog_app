@@ -1,12 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import InputBox from "../components/input.component";
 import googleIcon from "../imgs/google.png";
 import AnimationWrapper from "../common/page-animation";
 import { Toaster, toast } from "react-hot-toast";
 import axios from "axios";
+import { setSessionValue } from "../common/session";
+import { useContext } from "react";
+import { UserContext } from "../context/user.context";
 
 const UserAuthForm = ({ type }) => {
+
+  let { userAuth: { access_token }, setUserAuth } = useContext(UserContext); 
 
   const handleValidationError = (error) => {
     toast.error(error);
@@ -17,7 +22,9 @@ const UserAuthForm = ({ type }) => {
     axios
       .post(serverDomain + serverRoute, formData)
       .then(({ data }) => {
-        console.log(data);
+        setSessionValue("user", JSON.stringify(data));
+        
+        setUserAuth(data);
       })
       .catch(({ response }) => {
         handleValidationError(response.data.errors);
@@ -43,6 +50,9 @@ const UserAuthForm = ({ type }) => {
   };
 
   return (
+    access_token ?
+      <Navigate to="/"/>
+    : 
     <AnimationWrapper
       keyValue={type}
       initial={{ opacity: 0 }}

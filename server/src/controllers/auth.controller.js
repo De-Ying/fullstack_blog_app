@@ -9,18 +9,12 @@ dotenv.config();
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
 
-const formatDataToSend = (user) => {
-  const access_token = jwt.sign(
-    { id: user._id },
-    process.env.SECRET_ACCESS_KEY
-  );
+const hashPassword = async (password) => {
+  return bcrypt.hash(password, 10);
+};
 
-  return {
-    access_token,
-    profile_img: user.personal_info.profile_img,
-    username: user.personal_info.username,
-    fullname: user.personal_info.fullname,
-  };
+const saveUserToDatabase = async (user) => {
+  return user.save();
 };
 
 const generateUsername = async (email) => {
@@ -28,38 +22,69 @@ const generateUsername = async (email) => {
 
   let isUserNameNotUnique = await User.exists({
     "personal_info.username": username,
-  }).then((result) => result);
+  });
 
-  isUserNameNotUnique ? (username += nanoid().substring(0, 5)) : "";
+  if (isUserNameNotUnique) {
+    username += nanoid().substring(0, 5);
+  }
 
   return username;
+};
+
+const createAccessToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.SECRET_ACCESS_KEY);
+};
+
+const formatUserResponse = (user) => {
+  return {
+    access_token: createAccessToken(user._id),
+    profile_img: user.personal_info.profile_img,
+    username: user.personal_info.username,
+    fullname: user.personal_info.fullname,
+  };
+};
+
+const handleErrors = (res, error, status, message) => {
+  console.error(error);
+  return res.status(status).json({ errors: message });
+};
+
+const validateUserInput = (fullname, email, password) => {
+  const isBlank = (value) => !value.trim();
+  const isInvalidEmail = (value) => !emailRegex.test(value);
+  const isInvalidPassword = (value) => !passwordRegex.test(value);
+
+  const validations = [
+    { condition: isBlank(fullname), message: "Fullname is not blank" },
+    {
+      condition: fullname.length < 3,
+      message: "Fullname must be at least 3 letters long",
+    },
+    { condition: isBlank(email), message: "Email is not blank" },
+    { condition: isInvalidEmail(email), message: "Email is invalid" },
+    { condition: isBlank(password), message: "Password is not blank" },
+    {
+      condition: isInvalidPassword(password),
+      message:
+        "Password should be 6 to 20 characters long with a numeric, 1 lowercase, and 1 uppercase letter",
+    },
+  ];
+
+  const error = validations.find((validation) => validation.condition);
+  return error ? error.message : null;
 };
 
 export default {
   async signup(req, res) {
     try {
-      let { fullname, email, password } = req.body;
+      const { fullname, email, password } = req.body;
 
       // Validate user data from the frontend
-      const isBlank = (value) => !value.trim();
-      const isInvalidEmail = (value) => !emailRegex.test(value);
-      const isInvalidPassword = (value) => !passwordRegex.test(value);
+      const validationError = validateUserInput(fullname, email, password);
 
-      const validations = [
-        { condition: isBlank(fullname), message: "Fullname is not blank" },
-        {
-          condition: fullname.length < 3,
-          message: "Fullname must be at least 3 letters long",
-        },
-        { condition: isBlank(email), message: "Email is not blank" },
-        { condition: isInvalidEmail(email), message: "Email is invalid" },
-        { condition: isBlank(password), message: "Password is not blank" },
-        {
-          condition: isInvalidPassword(password),
-          message:
-            "Password should be 6 to 20 characters long with a numeric, 1 lowercase, and 1 uppercase letter",
-        },
-      ];
+      if (validationError) {
+        return res.status(403).json({ errors: validationError });
+      }
 
       const emailExists = await User.exists({ "personal_info.email": email });
 
@@ -67,14 +92,8 @@ export default {
         return res.status(409).json({ errors: "Email already exists" });
       }
 
-      const error = validations.find((validation) => validation.condition);
-
-      if (error) {
-        return res.status(403).json({ errors: error.message });
-      }
-
       // Hash the password using bcrypt
-      const hash = bcrypt.hashSync(password, 10);
+      const hash = await hashPassword(password);
 
       // Generate a unique username
       const username = await generateUsername(email);
@@ -85,12 +104,12 @@ export default {
       });
 
       // Save the user to the database
-      const savedUser = await user.save();
+      const savedUser = await saveUserToDatabase(user);
 
       // Return the response with the formatted user data
-      return res.status(200).json(formatDataToSend(savedUser));
+      return res.status(200).json(formatUserResponse(savedUser));
     } catch (error) {
-      return res.status(500).json({ error: error.message });
+      return handleErrors(res, error, 500, "Error occurred during signup");
     }
   },
 
@@ -101,7 +120,7 @@ export default {
       const user = await User.findOne({ "personal_info.email": email });
 
       if (!user) {
-        return res.status(403).json({ error: "Email not found!" });
+        return res.status(403).json({ errors: "Email not found!" });
       }
 
       const result = await bcrypt.compare(
@@ -110,15 +129,13 @@ export default {
       );
 
       if (!result) {
-        return res.status(403).json({ error: "Incorrect password" });
+        return res.status(403).json({ errors: "Incorrect password" });
       }
 
-      return res.status(200).json(formatDataToSend(user));
+      return res.status(200).json(formatUserResponse(user));
+
     } catch (error) {
-      console.log(error);
-      return res
-        .status(403)
-        .json({ error: "Error occurred while logging in, please try again" });
+      return handleErrors(res, error, 403, "Error occurred during signin");
     }
   },
 };
