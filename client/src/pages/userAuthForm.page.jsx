@@ -11,20 +11,22 @@ import { UserContext } from "../context/user.context";
 import { authWithGoogle } from "../common/firebase";
 
 const UserAuthForm = ({ type }) => {
-
-  let { userAuth: { access_token }, setUserAuth } = useContext(UserContext); 
+  let {
+    userAuth: { access_token },
+    setUserAuth,
+  } = useContext(UserContext);
 
   const handleValidationError = (error) => {
     toast.error(error);
   };
 
   const userAuthThroughServer = (serverRoute, formData) => {
-    let serverDomain = import.meta.env.VITE_SERVER_DOMAIN;
+    const serverDomain = import.meta.env.VITE_SERVER_DOMAIN;
     axios
       .post(serverDomain + serverRoute, formData)
       .then(({ data }) => {
         setSessionValue("user", JSON.stringify(data));
-        
+
         setUserAuth(data);
       })
       .catch(({ response }) => {
@@ -55,17 +57,23 @@ const UserAuthForm = ({ type }) => {
 
     try {
       const user = await authWithGoogle();
-      console.log(user);
+
+      const serverRoute = "/api/auth/google-auth";
+
+      const formData = {
+        access_token: user.accessToken,
+      };
+
+      userAuthThroughServer(serverRoute, formData);
     } catch (err) {
       toast.error("Trouble login through Google");
       console.error(err);
     }
-  }
+  };
 
-  return (
-    access_token ?
-      <Navigate to="/"/>
-    : 
+  return access_token ? (
+    <Navigate to="/" />
+  ) : (
     <AnimationWrapper
       keyValue={type}
       initial={{ opacity: 0 }}
@@ -128,9 +136,9 @@ const UserAuthForm = ({ type }) => {
             <hr className="w-1/2 border-black" />
           </div>
 
-          <button 
+          <button
             className="btn-dark flex items-center justify-center gap-4 w-[90%] center"
-            onClick={handleGoogleAuth}  
+            onClick={handleGoogleAuth}
           >
             <img src={googleIcon} className="w-5" />
             continue with google
