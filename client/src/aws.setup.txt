@@ -1,0 +1,61 @@
+* Configure on AWS Console
+
+1. S3 Service
+
+Cross-origin resource sharing (CORS)
+
+[
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "PUT",
+            "GET",
+            "HEAD"
+        ],
+        "AllowedOrigins": [
+            "*"
+        ],
+        "ExposeHeaders": []
+    }
+]
+
+---------------------------------------------------------------
+
+2. IAM
+
+* Setup policy
+
+Policies > Create Policy 
+
+(Step 1): Specify permissions
+    + Action allowed
+        - Search Service: S3
+        - Choose 2 actions: getObject và putObject 
+    + Resources
+        - Add ARNs
+
+(Step 2): Review and create
+    + Name the policy name
+
+----------------------------------------------------------------
+
+* Setup user
+
+User > Create User
+
+(Step 1): Specify user details 
+    + Enter username
+
+(Step 2): Set permissions
+    + Select option Attach Policies Directly > Search for the previously created name policy
+
+(Step 3): Review and create
+
+* Create Access Key
+
+(Step 1): Access key best practices & alternatives
+    + Select option: Other
+
+(Step 2): Set description tag
