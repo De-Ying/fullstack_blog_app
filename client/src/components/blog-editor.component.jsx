@@ -7,7 +7,6 @@ import { useRef } from "react";
 import { Toaster, toast } from "react-hot-toast";
 
 const BlogEditor = () => {
-
   const blogBannerRef = useRef();
 
   const handleBannerUpload = async (e) => {
@@ -15,7 +14,7 @@ const BlogEditor = () => {
 
     if (img) {
       let loadingToast = toast.loading("Uploading...");
-      
+
       try {
         let url = await uploadImage(img);
         if (url) {
@@ -29,6 +28,19 @@ const BlogEditor = () => {
       }
     }
   };
+
+  const handleTitleKeyDown = (e) => {
+    if (e.keyCode == 13) { // Enter key
+      e.preventDefault();
+    }
+  }
+
+  const handleTitleChange = (e) => {
+    let input = e.target;
+
+    input.style.height = "auto";
+    input.style.height = input.scrollHeight + "px";
+  }
 
   return (
     <>
@@ -58,10 +70,7 @@ const BlogEditor = () => {
           <div className="mx-auto max-w-[900px] w-full">
             <div className="relative aspect-video hover:opacity-80 bg-white border-4 border-grey">
               <label htmlFor="uploadBanner">
-                <img 
-                  ref={blogBannerRef}
-                  src={defaultBanner} 
-                  className="z-20" />
+                <img ref={blogBannerRef} src={defaultBanner} className="z-20" />
                 <input
                   id="uploadBanner"
                   type="file"
@@ -71,6 +80,13 @@ const BlogEditor = () => {
                 />
               </label>
             </div>
+
+            <textarea 
+              placeholder="Blog Title"
+              className="text-4xl font-medium w-full h-20 outline-none resize-none mt-10 leading-tight placeholder:opacity-40"
+              onKeyDown={handleTitleKeyDown}
+              onChange={handleTitleChange}
+            ></textarea>
           </div>
         </section>
       </AnimationWrapper>
