@@ -1,21 +1,27 @@
 import { connectToAWS } from "../../src/lib/awsConnection.js";
-import { nanoid } from "nanoid";
+import { BUCKET_NAME } from "../config/awsConfig.js";
+import crypto from "crypto";
+import { promisify } from "util";
+
+const randomBytes = promisify(crypto.randomBytes);
 
 const generateUploadUrl = async () => {
   const s3 = connectToAWS();
-  const date = new Date();
-  const imageName = `${nanoid}-${date.getTime()}.jpeg`;
+
+  const rawBytes = await randomBytes(16);
+  const imageName = rawBytes.toString('hex');
 
   try {
-    const signedUrl = await s3.getSignedUrlPromise("putObject", {
-      Bucket: 'fullstack-blog-app-tutorial',
+    const paranms = {
+      Bucket: BUCKET_NAME,
       Key: imageName,
-      Expires: 1000,
-      ContentType: "image/jpeg"
-    });
-    return signedUrl;
+      Expires: 60,
+    };
+
+    const uploadUrl = await s3.getSignedUrlPromise("putObject", paranms);
+    return uploadUrl;
   } catch (error) {
-    console.error('Error generating upload URL:', error);
+    console.error("Error generating upload URL:", error);
     throw error;
   }
 };

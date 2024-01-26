@@ -2,10 +2,16 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const awsConfig = {
-  region: "ap-southeast-1",
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+const REGION = process.env.AWS_REGION;
+const ACCESS_KEY = process.env.AWS_ACCESS_KEY;
+const SECRET_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+
+export const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
+
+export const awsConfig = {
+  region: REGION,
+  accessKeyId: ACCESS_KEY,
+  secretAccessKey: SECRET_KEY,
+  signatureVersion: "v4"
 };
 
-export default awsConfig;

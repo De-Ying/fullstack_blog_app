@@ -3,7 +3,7 @@ import uploadRouter from "./upload.route.js";
 
 function routes(app) {
   app.use("/api/auth", authRouter);
-  app.use("/api/upload", uploadRouter);
+  app.use("/api/image", uploadRouter);
 }
 
 export default routes;
