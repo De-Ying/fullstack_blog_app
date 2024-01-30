@@ -9,7 +9,7 @@ const generateUploadUrl = async () => {
   const s3 = connectToAWS();
 
   const rawBytes = await randomBytes(16);
-  const imageName = rawBytes.toString('hex');
+  const imageName = rawBytes.toString("hex");
 
   try {
     const paranms = {

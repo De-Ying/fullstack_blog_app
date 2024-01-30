@@ -129,16 +129,20 @@ export default {
           password,
           user.personal_info.password
         );
-  
+
         if (!result) {
           return res.status(403).json({ errors: "Incorrect password" });
         }
-  
+
         return res.status(200).json(formatUserResponse(user));
       } else {
-        return res.status(403).json({ errors: "Account was created using Google. Try logging in with google." });
+        return res
+          .status(403)
+          .json({
+            errors:
+              "Account was created using Google. Try logging in with google.",
+          });
       }
-
     } catch (error) {
       return handleErrors(res, error, 403, "Error occurred during signin");
     }
@@ -151,28 +155,40 @@ export default {
       const decodedUser = await getAuth().verifyIdToken(access_token);
       const { email, name, picture } = decodedUser;
 
-      let user = await User.findOne({ "personal_info.email": email })
-      .select("personal_info.fullname personal_info.username personal_info.profile_img google_auth");
+      let user = await User.findOne({ "personal_info.email": email }).select(
+        "personal_info.fullname personal_info.username personal_info.profile_img google_auth"
+      );
 
       if (user) {
         if (!user.google_auth) {
           return res.status(403).json({
-            errors: "This email was signed up without google. Please log in with password to access the account",
+            errors:
+              "This email was signed up without google. Please log in with password to access the account",
           });
         }
       } else {
         const username = await generateUsername(email);
         user = new User({
-          personal_info: { fullname: name, email, profile_img: picture, username },
+          personal_info: {
+            fullname: name,
+            email,
+            profile_img: picture,
+            username,
+          },
           google_auth: true,
         });
-  
+
         await user.save();
       }
 
       return res.status(200).json(formatUserResponse(user));
     } catch (err) {
-      return res.status(500).json({ errors: "Failed to authenticate you with google. Try with some other google account" });
+      return res
+        .status(500)
+        .json({
+          errors:
+            "Failed to authenticate you with google. Try with some other google account",
+        });
     }
   },
 };
