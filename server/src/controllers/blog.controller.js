@@ -2,17 +2,20 @@ import { nanoid } from "nanoid";
 import Blog from "../models/blog.model.js";
 import User from "../models/user.model.js";
 
-function validateBlogData(title, desc, banner, tags, content) {
-  if (!title.length) return "You must provide a title to publish the blog";
-  if (!desc.length || desc.length > 200)
-    return "Blog description must be under 200 characters";
-  if (!banner.length) return "You must provide a banner to publish the blog";
-  if (!content.blocks.length)
-    return "There must be some blog content to publish it";
-  if (!tags.length || tags.length > 10)
-    return "You must provide tags, Maximum 10";
+function validateBlogData(title, desc, banner, tags, content, draft) {
+  if (!draft) {
+    if (!desc.length || desc.length > 200)
+      return "Blog description must be under 200 characters";
+    if (!banner.length) return "You must provide a banner to publish the blog";
+    if (!content.blocks.length)
+      return "There must be some blog content to publish it";
+    if (!tags.length || tags.length > 10)
+      return "You must provide tags, Maximum 10";
+  }
 
-  return null; // Không có lỗi
+  if (!title.length) return "You must provide a title to publish the blog";
+
+  return null; 
 }
 
 export default {
@@ -27,7 +30,8 @@ export default {
         desc,
         banner,
         tags,
-        content
+        content,
+        draft
       );
       if (validationError) {
         return res.status(403).json({ error: validationError });
