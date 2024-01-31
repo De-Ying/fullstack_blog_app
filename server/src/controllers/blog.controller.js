@@ -15,11 +15,29 @@ function validateBlogData(title, desc, banner, tags, content, draft) {
 
   if (!title.length) return "You must provide a title to publish the blog";
 
-  return null; 
+  return null;
 }
 
 export default {
-  async store(req, res) {
+  async getLatestBlog(req, res) {
+    try {
+      const maxLimit = 5;
+      const blogs = await Blog.find({ draft: false })
+        .populate(
+          "author",
+          "personal_info.profile_img personal_info.username personal_info.fullname -_id"
+        )
+        .sort({ publishedAt: -1 })
+        .select("blog_id title desc banner activity tags publishedAt -_id")
+        .limit(maxLimit);
+
+      return res.status(200).json({ blogs });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async createBlog(req, res) {
     try {
       const authorId = req.user;
       const { title, desc, banner, tags, content, draft } = req.body;
@@ -33,6 +51,7 @@ export default {
         content,
         draft
       );
+
       if (validationError) {
         return res.status(403).json({ error: validationError });
       }
@@ -65,8 +84,11 @@ export default {
       // Update information user
       const incrementVal = draft ? 0 : 1;
       await User.findOneAndUpdate(
-          { _id: authorId },
-          { $inc: { "account_info.total_posts": incrementVal }, $push: { blogs: savedBlog._id } }
+        { _id: authorId },
+        {
+          $inc: { "account_info.total_posts": incrementVal },
+          $push: { blogs: savedBlog._id },
+        }
       );
 
       // Return id of new blog
