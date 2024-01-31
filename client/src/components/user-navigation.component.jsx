@@ -19,8 +19,6 @@ const UserNavigationPanel = () => {
   return (
     <AnimationWrapper
       keyValue="userNavigationPanel"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
       className="absolute right-0 z-50"
     >

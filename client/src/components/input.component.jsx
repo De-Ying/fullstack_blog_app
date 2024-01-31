@@ -34,7 +34,7 @@ InputBox.propTypes = {
     name: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
-    value: PropTypes.string.isRequired,
+    value: PropTypes.string,
     placeholder: PropTypes.string.isRequired,
     icon: PropTypes.string.isRequired
 }

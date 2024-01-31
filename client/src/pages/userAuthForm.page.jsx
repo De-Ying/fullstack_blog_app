@@ -11,7 +11,7 @@ import { UserContext } from "../context/user.context";
 import { authWithGoogle } from "../common/firebase";
 
 const UserAuthForm = ({ type }) => {
-  let {
+  const {
     userAuth: { access_token },
     setUserAuth,
   } = useContext(UserContext);
@@ -20,36 +20,26 @@ const UserAuthForm = ({ type }) => {
     toast.error(error);
   };
 
-  const userAuthThroughServer = (serverRoute, formData) => {
-    const serverDomain = import.meta.env.VITE_SERVER_DOMAIN;
-    axios
-      .post(serverDomain + serverRoute, formData)
-      .then(({ data }) => {
-        setSessionValue("user", JSON.stringify(data));
-
-        setUserAuth(data);
-      })
-      .catch(({ response }) => {
-        handleValidationError(response.data.errors);
-      });
+  const userAuthThroughServer = async (serverRoute, formData) => {
+    try {
+      const serverDomain = import.meta.env.VITE_SERVER_API;
+      const { data } = await axios.post(serverDomain + serverRoute, formData);
+      setSessionValue("user", JSON.stringify(data));
+      setUserAuth(data);
+    } catch (error) {
+      handleValidationError(error.response.data.errors);
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formElement =
-      type === "sign-in"
-        ? document.getElementById("formSignIn")
-        : document.getElementById("formSignUp");
-
-    let apiSignInURL = "/api/auth/signin";
-    let apiSignUpURL = "/api/auth/signup";
+    const formElement = document.getElementById(type === "sign-in" ? "formSignIn" : "formSignUp");
+    let apiSignInURL = "/auth/signin";
+    let apiSignUpURL = "/auth/signup";
     let serverRoute = type == "sign-in" ? apiSignInURL : apiSignUpURL;
-
-    // formData
     let form = new FormData(formElement);
     let formData = Object.fromEntries(form.entries());
-
-    userAuthThroughServer(serverRoute, formData);
+    await userAuthThroughServer(serverRoute, formData);
   };
 
   const handleGoogleAuth = async (e) => {
@@ -57,16 +47,15 @@ const UserAuthForm = ({ type }) => {
 
     try {
       const user = await authWithGoogle();
-
-      const serverRoute = "/api/auth/google-auth";
+      const serverRoute = "/auth/google-auth";
 
       const formData = {
         access_token: user.accessToken,
       };
 
-      userAuthThroughServer(serverRoute, formData);
+      await userAuthThroughServer(serverRoute, formData);
     } catch (err) {
-      toast.error("Trouble login through Google");
+      toast.error("Trouble logging in through Google");
       console.error(err);
     }
   };
@@ -76,10 +65,6 @@ const UserAuthForm = ({ type }) => {
   ) : (
     <AnimationWrapper
       keyValue={type}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1 }}
-      className=""
     >
       <section className="h-cover flex items-center justify-center">
         <Toaster />
@@ -98,7 +83,6 @@ const UserAuthForm = ({ type }) => {
               type="text"
               placeholder="Full Name"
               icon="fi-rr-user"
-              value=""
             />
           ) : (
             ""
@@ -110,7 +94,6 @@ const UserAuthForm = ({ type }) => {
             type="email"
             placeholder="Email"
             icon="fi-rr-envelope"
-            value=""
           />
 
           <InputBox
@@ -119,7 +102,6 @@ const UserAuthForm = ({ type }) => {
             type="password"
             placeholder="Password"
             icon="fi-rr-key"
-            value=""
           />
 
           <button

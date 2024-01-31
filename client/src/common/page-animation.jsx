@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { AnimatePresence, motion } from "framer-motion";
 
-const AnimationWrapper = ({ children, keyValue, initial, animate, transition, className }) => {
+const AnimationWrapper = ({ children, keyValue, initial = { opacity: 0 }, animate = { opacity: 1 }, transition = { duration: 1 }, className }) => {
     return (
         <AnimatePresence>
             <motion.div
@@ -18,12 +18,12 @@ const AnimationWrapper = ({ children, keyValue, initial, animate, transition, cl
 }
 
 AnimationWrapper.propTypes = {
-    children: PropTypes.object.isRequired,
-    keyValue: PropTypes.string.isRequired,
-    initial: PropTypes.object.isRequired,
-    animate: PropTypes.object.isRequired,
-    transition: PropTypes.object.isRequired,
-    className: PropTypes.string.isRequired
+    children: PropTypes.object,
+    keyValue: PropTypes.string,
+    initial: PropTypes.object,
+    animate: PropTypes.object,
+    transition: PropTypes.object,
+    className: PropTypes.string
 }
 
 export default AnimationWrapper

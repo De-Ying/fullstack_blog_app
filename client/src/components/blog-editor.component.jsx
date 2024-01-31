@@ -122,10 +122,6 @@ const BlogEditor = () => {
 
       <AnimationWrapper
         keyValue="blog-editor"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-        className=""
       >
         <section>
           <div className="mx-auto max-w-[900px] w-full">

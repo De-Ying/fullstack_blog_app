@@ -2,10 +2,10 @@ import axios from "axios";
 
 export const uploadImage = async (img) => {
   try {
-    const serverDomain = import.meta.env.VITE_SERVER_DOMAIN;
+    const serverDomain = import.meta.env.VITE_SERVER_API;
     
     // Send a GET request to get the upload URL from the server
-    const response = await axios.get(`${serverDomain}/api/image/s3Url`);
+    const response = await axios.get(`${serverDomain}/image/s3Url`);
     const { uploadURL } = response.data;
 
     // Send a PUT request to upload an image to the URL that was received

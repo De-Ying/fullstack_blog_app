@@ -1,83 +1,117 @@
+import { useState, useCallback, useContext } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import AnimationWrapper from "../common/page-animation";
-import { useCallback, useContext } from "react";
-import { EditorContext } from "../pages/editor.pages";
 import Tag from "./tags.component";
+import { EditorContext } from "../pages/editor.pages";
+import { UserContext } from "../context/user.context";
 
 const PublishForm = () => {
   const characterLimit = 200;
   const tagLimit = 10;
 
-  let {
-    blog,
-    blog: { title, banner, tags, desc },
-    setEditorState,
-    setBlog,
-  } = useContext(EditorContext);
+  const { blog, setEditorState, setBlog } = useContext(EditorContext);
+  const {
+    userAuth: { access_token },
+  } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleCloseEvent = useCallback(() => {
     setEditorState("editor");
   }, [setEditorState]);
 
-  const handleBlogTitleChange = useCallback(
-    (e) => {
-      let input = e.target;
-      if (input.value !== blog.title) {
-        setBlog({ ...blog, title: input.value });
-      }
+  const handleInputChange = useCallback(
+    (e, field) => {
+      const value = e.target.value;
+      setBlog((prevBlog) => ({ ...prevBlog, [field]: value }));
     },
-    [blog, setBlog]
+    [setBlog]
   );
 
-  const handleBlogDescChange = useCallback(
+  const handleTopicKeyDown = useCallback(
     (e) => {
-      let input = e.target;
-      if (input.value !== blog.desc) {
-        setBlog({ ...blog, desc: input.value });
+      if (e.keyCode == 13 || e.keyCode == 188) {
+        e.preventDefault();
+
+        const tag = e.target.value.trim();
+
+        if (blog.tags.length >= tagLimit) {
+          toast.error(`You can add a maximum of ${tagLimit} tags`);
+          return;
+        }
+
+        if (!blog.tags.includes(tag)) {
+          setBlog((prevBlog) => ({
+            ...prevBlog,
+            tags: [...prevBlog.tags, tag],
+          }));
+        } else {
+          toast.error(`Tag "${tag}" already exists`);
+        }
+
+        e.target.value = "";
       }
     },
-    [blog, setBlog]
+    [blog.tags, setBlog]
   );
 
-  const handleTitleKeyDown = (e) => {
-    if (e.keyCode == 13) {
-      // Enter key
-      e.preventDefault();
+  const validateBlogData = () => {
+    const { title, desc, banner, tags } = blog;
+
+    if (!title.length) return "Write blog title before publishing";
+    if (!desc.length || desc.length > characterLimit)
+      return `Write a description about your blog withing ${characterLimit} characters`;
+    if (!banner.length) return "You must provide a banner to publish the blog";
+    if (!tags.length || tags.length > tagLimit)
+      return `Enter at least one tag to help us rank your blog, maximum length is ${tagLimit} tag`;
+
+    return null;
+  };
+
+  const createBlogThroughServer = async (formData) => {
+    try {
+      const serverDomain = import.meta.env.VITE_SERVER_API;
+
+      await axios.post(`${serverDomain}/blog/create-blog`, formData, {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
+
+      toast.success("Published 👍");
+      setTimeout(() => {
+        navigate("/");
+      }, 500);
+    } catch (error) {
+      toast.error(error.response.data.error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleTopicKeyDown = (e) => {
-    if (e.keyCode == 13 || e.keyCode == 188) {
-      e.preventDefault();
+  const publishBlog = () => {
+    if (loading) return;
 
-      const tag = e.target.value.trim();
+    const validationError = validateBlogData();
 
-      if (tags.length >= tagLimit) {
-        toast.error(`You can add a maximum of ${tagLimit} tags`);
-        return;
-      }
-
-      if (!tags.includes(tag)) {
-        setBlog((prevBlog) => ({ ...prevBlog, tags: [...tags, tag] }));
-      } else {
-        toast.error(`Tag "${tag}" already exists`);
-      }
-
-      e.target.value = "";
+    if (validationError) {
+      toast.error(validationError);
+      return;
     }
-  };
 
-  const handleCheck = () => {
-    console.log(blog);
+    setLoading(true);
+
+    const formData = {
+      ...blog,
+      draft: false,
+    };
+
+    createBlogThroughServer(formData);
   };
 
   return (
     <AnimationWrapper
       keyValue="publish-form"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1 }}
-      className=""
     >
       <section className="w-screen min-h-screen grid items-center lg:grid-cols-2 py-16 lg:gap-4">
         <Toaster />
@@ -92,15 +126,15 @@ const PublishForm = () => {
           <p className="text-dark-grey mb-1">Preview</p>
 
           <div className="w-full aspect-video rounded-lg overflow-hidden bg-grey mt-4">
-            <img src={banner} />
+            <img src={blog.banner} />
           </div>
 
           <h1 className="text-4xl font-medium mt-2 leading-tight line-clamp-2">
-            {title}
+            {blog.title}
           </h1>
 
           <p className="font-gelasio line-clamp-2 text-xl leading-7 mt-4">
-            {desc}
+            {blog.desc}
           </p>
         </div>
 
@@ -109,9 +143,9 @@ const PublishForm = () => {
           <input
             type="text"
             placeholder="Blog Title"
-            defaultValue={title}
+            defaultValue={blog.title}
             className="input-box pl-4"
-            onChange={handleBlogTitleChange}
+            onChange={(e) => handleInputChange(e, "title")}
           />
 
           <p className="text-dark-grey mb-2 mt-9">
@@ -120,14 +154,13 @@ const PublishForm = () => {
 
           <textarea
             maxLength={characterLimit}
-            defaultValue={desc}
+            defaultValue={blog.desc}
             className="h-40 resize-none leading-7 input-box pl-4"
-            onChange={handleBlogDescChange}
-            onKeyDown={handleTitleKeyDown}
+            onChange={(e) => handleInputChange(e, "desc")}
           ></textarea>
 
           <p className="mt-1 text-dark-grey text-sm text-right">
-            {characterLimit - desc.length} characters left
+            {characterLimit - blog.desc.length} characters left
           </p>
 
           <p className="text-dark-grey mb-2 mt-9">
@@ -142,17 +175,17 @@ const PublishForm = () => {
               onKeyDown={handleTopicKeyDown}
             />
 
-            {tags.map((tag, i) => {
+            {blog.tags.map((tag, i) => {
               return <Tag tag={tag} tagIndex={i} key={i} />;
             })}
           </div>
 
           <p className="mt-1 mb-4 text-dark-grey text-right">
-            {tagLimit - tags.length} Tags left
+            {tagLimit - blog.tags.length} Tags left
           </p>
 
-          <button className="btn-dark px-8" onClick={handleCheck}>
-            Publish
+          <button className="btn-dark px-8" onClick={publishBlog}>
+            {loading ? "Publishing..." : "Publish"}
           </button>
         </div>
       </section>
