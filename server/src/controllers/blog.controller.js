@@ -55,6 +55,26 @@ export default {
     }
   },
 
+  async filterBlog(req, res) {
+    try {
+      const { tag } = req.body;
+      const maxLimit = 5;
+      const findQuery = { tags: tag, draft: false };
+      const blogs = await Blog.find(findQuery)
+        .populate(
+          "author",
+          "personal_info.profile_img personal_info.username personal_info.fullname -_id"
+        )
+        .sort({ "publishedAt": -1 })
+        .select("blog_id title desc banner activity tags publishedAt -_id")
+        .limit(maxLimit);
+
+      return res.status(200).json({ blogs });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }, 
+
   async createBlog(req, res) {
     try {
       const authorId = req.user;

@@ -7,8 +7,8 @@ import axios from "axios";
 import MinimalBlogPost from "../components/nobanner-blog-post.component";
 
 const HomePage = () => {
-  const [blogs, setBlog] = useState(null);
-  const [trendingBlogs, setTrendingBlog] = useState(null);
+  const [blogs, setBlogs] = useState(null);
+  const [trendingBlogs, setTrendingBlogs] = useState(null);
   const [pageState, setPageState] = useState("home");
   const activeTabRef = useRef(null);
 
@@ -24,47 +24,74 @@ const HomePage = () => {
 
   const fetchLatestBlogs = async () => {
     try {
-      const { data } = await axios(
-        import.meta.env.VITE_SERVER_API + "/blog/latest-blog"
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_SERVER_API}/blog/latest-blog`
       );
-
-      setBlog(data.blogs);
+      return data.blogs;
     } catch (error) {
       console.log(error);
+      return [];
+    }
+  };
+
+  const fetchBlogByCategory = async (category) => {
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_SERVER_API}/blog/filter-blog`,
+        { tag: category }
+      );
+      return data.blogs;
+    } catch (error) {
+      console.log(error);
+      return [];
     }
   };
 
   const fetchTrendingBlogs = async () => {
     try {
-      const { data } = await axios(
-        import.meta.env.VITE_SERVER_API + "/blog/trending-blog"
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_SERVER_API}/blog/trending-blog`
       );
-
-      setTrendingBlog(data.blogs);
+      return data.blogs;
     } catch (error) {
       console.log(error);
+      return [];
     }
   };
 
-  const loadBlogByCategory = (e) => {
-    const category = e.target.innerText.toLowerCase();
-
-    setBlog(null);
-
-    setPageState(prevState => prevState === category ? "home" : category);
-  };
+  useEffect(() => {
+    fetchLatestData();
+  }, []);
 
   useEffect(() => {
     activeTabRef.current.click();
 
-    if (pageState == "home") {
-      fetchLatestBlogs();
+    if (pageState === "home") {
+      fetchLatestData();
+    } else {
+      fetchBlogByCategory(pageState).then((data) => setBlogs(data));
     }
+  }, [pageState]);
 
+  useEffect(() => {
     if (!trendingBlogs) {
-      fetchTrendingBlogs();
+      fetchTrendingBlogs().then((data) => setTrendingBlogs(data));
     }
-  }, [pageState, trendingBlogs]);
+  }, [trendingBlogs]);
+
+  const fetchLatestData = async () => {
+    const latestBlogs = await fetchLatestBlogs();
+    setBlogs(latestBlogs);
+    if (!trendingBlogs) {
+      const trending = await fetchTrendingBlogs();
+      setTrendingBlogs(trending);
+    }
+  };
+
+  const loadBlogByCategory = (category) => {
+    setBlogs(null);
+    setPageState((prevState) => (prevState === category ? "home" : category));
+  };
 
   return (
     <AnimationWrapper>
@@ -134,7 +161,7 @@ const HomePage = () => {
                         (pageState == category ? " bg-black text-white " : " ")
                       }
                       key={i}
-                      onClick={loadBlogByCategory}
+                      onClick={() => loadBlogByCategory(category)}
                     >
                       {category}
                     </button>
