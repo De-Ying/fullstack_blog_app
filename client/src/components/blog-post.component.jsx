@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { getDay } from "../common/date";
 import { Link } from "react-router-dom";
 
@@ -14,7 +15,10 @@ const BlogPostCard = ({ content, author }) => {
   const { fullname, username, profile_img } = author;
 
   return (
-    <Link to={`/blog/${id}`} className="flex gap-8 items-center border-b border-grey pb-5 mb-4">
+    <Link
+      to={`/blog/${id}`}
+      className="flex gap-8 items-center border-b border-grey pb-5 mb-4"
+    >
       <div className="w-full">
         <div className="flex gap-2 items-center mb-7">
           <img src={profile_img} className="w-6 h-6 rounded-full" />
@@ -40,10 +44,32 @@ const BlogPostCard = ({ content, author }) => {
       </div>
 
       <div className="h-28 aspect-square bg-grey">
-        <img src={banner} className="w-full h-full aspect-square object-cover" />
+        <img
+          src={banner}
+          className="w-full h-full aspect-square object-cover"
+        />
       </div>
     </Link>
   );
+};
+
+BlogPostCard.propTypes = {
+  content: PropTypes.shape({
+    publishedAt: PropTypes.string,
+    tags: PropTypes.arrayOf(PropTypes.string),
+    title: PropTypes.string,
+    desc: PropTypes.string,
+    banner: PropTypes.string,
+    activity: PropTypes.shape({
+      total_likes: PropTypes.number,
+    }),
+    blog_id: PropTypes.string,
+  }),
+  author: PropTypes.shape({
+    fullname: PropTypes.string,
+    username: PropTypes.string,
+    profile_img: PropTypes.string,
+  }),
 };
 
 export default BlogPostCard;

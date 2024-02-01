@@ -18,7 +18,7 @@ function validateBlogData(title, desc, banner, tags, content, draft) {
   return null;
 }
 
-export default {
+export default { 
   async getLatestBlog(req, res) {
     try {
       const maxLimit = 5;
@@ -29,6 +29,24 @@ export default {
         )
         .sort({ publishedAt: -1 })
         .select("blog_id title desc banner activity tags publishedAt -_id")
+        .limit(maxLimit);
+
+      return res.status(200).json({ blogs });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getTrendingBlog(req, res) {
+    try {
+      const maxLimit = 5;
+      const blogs = await Blog.find({ draft: false })
+        .populate(
+          "author",
+          "personal_info.profile_img personal_info.username personal_info.fullname -_id"
+        )
+        .sort({ "activity.total_read": -1, "activity.total_likes": -1, "publishedAt": -1 })
+        .select("blog_id title publishedAt -_id")
         .limit(maxLimit);
 
       return res.status(200).json({ blogs });
