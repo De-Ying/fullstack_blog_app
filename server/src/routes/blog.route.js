@@ -10,6 +10,8 @@ router.post('/all-latest-blog-count', blogController.allLatestBlogCount);
 router.get('/trending-blog', blogController.getTrendingBlog);
 router.post('/filter-blog', blogController.filterBlog);
 router.post('/filter-blog-count', blogController.filterBlogCount);
+router.post("/search-blog", blogController.searchBlog);
+router.post("/search-blog-count", blogController.searchBlogCount);
 router.post("/create-blog", verifyJWT, blogController.createBlog);
 
 export default router;

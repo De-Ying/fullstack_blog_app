@@ -84,7 +84,6 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-
     activeTabRef.current.click();
 
     if (pageState === "home") {
@@ -96,8 +95,65 @@ const HomePage = () => {
     if (!trendingBlogs) {
       fetchTrendingBlogs();
     }
-    
   }, [pageState]);
+
+  const BlogCardWrapper = () => {
+    return (
+      <>
+        {blogs === null ? (
+          <Loader />
+        ) : blogs.results.length ? (
+          blogs.results.map((blog, i) => {
+            return (
+              <AnimationWrapper
+                transition={{ duration: 1, delay: i * 0.1 }}
+                key={i}
+                className={"mb-7"}
+              >
+                <BlogPostCard
+                  content={blog}
+                  author={blog.author.personal_info}
+                />
+              </AnimationWrapper>
+            );
+          })
+        ) : (
+          <NoDataMessage message="No blogs published" />
+        )}
+
+        <LoadMoreDataBtn
+          state={blogs}
+          fetchDataFunc={
+            pageState === "home" ? fetchLatestBlogs : fetchBlogByCategory
+          }
+        />
+      </>
+    );
+  };
+
+  const TrendingBlogCardWrapper = () => {
+    return (
+      <>
+        {trendingBlogs === null ? (
+          <Loader />
+        ) : trendingBlogs.length ? (
+          trendingBlogs.map((blog, i) => {
+            return (
+              <AnimationWrapper
+                transition={{ duration: 1, delay: i * 0.1 }}
+                key={i}
+                className={"mb-7"}
+              >
+                <MinimalBlogPost blog={blog} index={i} />
+              </AnimationWrapper>
+            );
+          })
+        ) : (
+          <NoDataMessage message="No trending blogs" />
+        )}
+      </>
+    );
+  };
 
   return (
     <AnimationWrapper>
@@ -109,50 +165,8 @@ const HomePage = () => {
             defaultHidden={["trending blogs"]}
             activeTabRef={activeTabRef}
           >
-            <>
-              {blogs === null ? (
-                <Loader />
-              ) : blogs.results.length ? (
-                blogs.results.map((blog, i) => {
-                  return (
-                    <AnimationWrapper
-                      transition={{ duration: 1, delay: i * 0.1 }}
-                      key={i}
-                      className={"mb-7"}
-                    >
-                      <BlogPostCard
-                        content={blog}
-                        author={blog.author.personal_info}
-                      />
-                    </AnimationWrapper>
-                  );
-                })
-              ) : (
-                <NoDataMessage message="No blogs published" />
-              )}
-
-              <LoadMoreDataBtn state={blogs} fetchDataFunc={( pageState === "home" ? fetchLatestBlogs : fetchBlogByCategory )} />
-            </>
-
-            {trendingBlogs === null ? (
-              <Loader />
-            ) : trendingBlogs.length ? (
-              trendingBlogs.map((blog, i) => {
-                return (
-                  <AnimationWrapper
-                    transition={{ duration: 1, delay: i * 0.1 }}
-                    key={i}
-                    className={"mb-7"}
-                  >
-                    <MinimalBlogPost blog={blog} index={i} />
-                  </AnimationWrapper>
-                );
-              })
-            ) : (
-              <NoDataMessage message="No trending blogs" />
-            )}
-
-            <h1>Trending Blogs Here</h1>
+            <BlogCardWrapper />
+            <TrendingBlogCardWrapper />
           </InPageNavigation>
         </div>
 
