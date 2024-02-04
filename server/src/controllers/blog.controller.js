@@ -22,7 +22,13 @@ export default {
   async latestBlog(req, res) {
     try {
       const { page } = req.body;
+
+      if (!page || page < 1) {
+        return res.status(400).json({ error: "Invalid page number" });
+      }
+
       const maxLimit = 5;
+      const skipCount = (page - 1) * maxLimit;
       
       const blogs = await Blog.find({ draft: false })
         .populate(
@@ -31,7 +37,7 @@ export default {
         )
         .sort({ publishedAt: -1 })
         .select("blog_id title desc banner activity tags publishedAt -_id")
-        .skip((page - 1) * maxLimit)
+        .skip(skipCount)
         .limit(maxLimit);
 
       return res.status(200).json({ blogs });
@@ -71,8 +77,15 @@ export default {
   async filterBlog(req, res) {
     try {
       const { tag, page } = req.body;
+
+      if (!page || page < 1) {
+        return res.status(400).json({ error: "Invalid page number" });
+    }
+
       const findQuery = { tags: tag, draft: false };
+
       const maxLimit = 2;
+      const skipCount = (page - 1) * maxLimit;
 
       const blogs = await Blog.find(findQuery)
         .populate(
@@ -81,7 +94,7 @@ export default {
         )
         .sort({ "publishedAt": -1 })
         .select("blog_id title desc banner activity tags publishedAt -_id")
-        .skip((page - 1) * maxLimit)
+        .skip(skipCount)
         .limit(maxLimit);
 
       return res.status(200).json({ blogs });

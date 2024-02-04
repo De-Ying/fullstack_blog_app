@@ -1,26 +1,34 @@
 import { useContext, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import logo from "../imgs/logo.png";
 import { UserContext } from "../context/user.context";
 import UserNavigationPanel from "./user-navigation.component";
 
 const Navbar = () => {
-
-  const [ searchBoxVisibility, setSearchBoxVisibility ] = useState(false);
-  const [ userNavPanel, setUserNavPanel] = useState(false);
+  const [searchBoxVisibility, setSearchBoxVisibility] = useState(false);
+  const [userNavPanel, setUserNavPanel] = useState(false);
   const {
     userAuth: { access_token, profile_img },
   } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const handleUserNavPanel = () => {
-    setUserNavPanel(currentVal => !currentVal);
+    setUserNavPanel((currentVal) => !currentVal);
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    
+    if (e.keyCode === 13 && query.length) {
+      navigate(`/search/${query}`);
+    }
   }
 
   const handleUserBlur = () => {
     setTimeout(() => {
       setUserNavPanel(false);
     }, 200);
-  }
+  };
 
   return (
     <>
@@ -39,6 +47,7 @@ const Navbar = () => {
             type="text"
             placeholder="Search"
             className="w-full md:w-auto bg-grey p-4 pl-6 pr-[12%] md:pr-6 rounded-full placeholder:text-dark-grey md:pl-12"
+            onKeyDown={handleSearch}
           />
 
           <i className="fi fi-rr-search absolute right-[10%] md:pointer-events-none md:left-5 top-1/2 -translate-y-1/2 text-xl text-dark-grey"></i>
@@ -65,19 +74,19 @@ const Navbar = () => {
                 </button>
               </Link>
 
-              <div 
-                className="relative" 
+              <div
+                className="relative"
                 onClick={handleUserNavPanel}
                 onBlur={handleUserBlur}
-                >
+              >
                 <button className="w-12 h-12 mt=1">
-                  <img src={profile_img} className="w-full h-full object-cover rounded-full" />
+                  <img
+                    src={profile_img}
+                    className="w-full h-full object-cover rounded-full"
+                  />
                 </button>
 
-                {
-                  userNavPanel ? <UserNavigationPanel /> : ""
-                }
-                
+                {userNavPanel ? <UserNavigationPanel /> : ""}
               </div>
             </>
           ) : (
