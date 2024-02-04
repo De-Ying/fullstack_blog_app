@@ -19,9 +19,11 @@ function validateBlogData(title, desc, banner, tags, content, draft) {
 }
 
 export default { 
-  async getLatestBlog(req, res) {
+  async latestBlog(req, res) {
     try {
+      const { page } = req.body;
       const maxLimit = 5;
+      
       const blogs = await Blog.find({ draft: false })
         .populate(
           "author",
@@ -29,9 +31,20 @@ export default {
         )
         .sort({ publishedAt: -1 })
         .select("blog_id title desc banner activity tags publishedAt -_id")
+        .skip((page - 1) * maxLimit)
         .limit(maxLimit);
 
       return res.status(200).json({ blogs });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async allLatestBlogCount(req, res) {
+    try {
+      const count = await Blog.countDocuments({ draft: false });
+      
+      return res.status(200).json({ totalDocs: count });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
@@ -57,9 +70,10 @@ export default {
 
   async filterBlog(req, res) {
     try {
-      const { tag } = req.body;
-      const maxLimit = 5;
+      const { tag, page } = req.body;
       const findQuery = { tags: tag, draft: false };
+      const maxLimit = 2;
+
       const blogs = await Blog.find(findQuery)
         .populate(
           "author",
@@ -67,6 +81,7 @@ export default {
         )
         .sort({ "publishedAt": -1 })
         .select("blog_id title desc banner activity tags publishedAt -_id")
+        .skip((page - 1) * maxLimit)
         .limit(maxLimit);
 
       return res.status(200).json({ blogs });
@@ -74,6 +89,21 @@ export default {
       return res.status(500).json({ error: error.message });
     }
   }, 
+
+  async filterBlogCount(req, res) {
+    try {
+      const { tag } = req.body;
+
+      const findQuery = { tags: tag, draft: false };
+
+      const count = await Blog.countDocuments(findQuery);
+
+      return res.status(200).json({ totalDocs: count });
+      
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
 
   async createBlog(req, res) {
     try {
