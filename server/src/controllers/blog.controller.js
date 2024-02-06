@@ -120,7 +120,7 @@ export default {
 
   async searchBlog(req, res) {
     try {
-      const { tag, query, page } = req.body;
+      const { tag, query, page, author } = req.body;
 
       if (!page || page < 1) {
         return res.status(400).json({ error: "Invalid page number" });
@@ -135,6 +135,8 @@ export default {
         findQuery.tags = tag;
       } else if (query) {
         findQuery.title = new RegExp(query, "i");
+      } else if (author) {
+        findQuery.author = author;
       }
 
       const blogs = await Blog.find(findQuery)

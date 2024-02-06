@@ -20,4 +20,20 @@ export default {
       return res.status(500).json({ error: error.message });
     }
   },
+
+  async getProfile(req, res) {
+    try {
+      const { username } = req.body;
+
+      const user = await User.findOne({ "personal_info.username": username })
+        .select(
+          "-personal_info.password -google_auth -updatedAt -blogs"
+        );
+
+      return res.status(200).json(user);
+
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
 };
