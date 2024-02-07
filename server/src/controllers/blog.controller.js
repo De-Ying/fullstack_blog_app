@@ -120,19 +120,20 @@ export default {
 
   async searchBlog(req, res) {
     try {
-      const { tag, query, page, author } = req.body;
+      const { tag, query, page, author, limit, eliminate_blog } = req.body;
 
       if (!page || page < 1) {
         return res.status(400).json({ error: "Invalid page number" });
       }
 
-      const maxLimit = 2;
+      const maxLimit = limit ? limit : 2;
       const skipCount = (page - 1) * maxLimit;
 
       let findQuery = { draft: false };
 
       if (tag) {
         findQuery.tags = tag;
+        findQuery.blog_id = { $ne: eliminate_blog };
       } else if (query) {
         findQuery.title = new RegExp(query, "i");
       } else if (author) {

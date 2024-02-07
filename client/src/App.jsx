@@ -12,18 +12,18 @@ import BlogPage from "./pages/blog.page";
 const App = () => {
   return (
     <UserContextProvider>
-      <Routes>
-        <Route path="/editor" element={<Editor />}/>
-        <Route path="/" element={<Navbar />}>
-          <Route index element={<HomePage />} />
-          <Route path="signin" element={<UserAuthForm type="sign-in" />} />
-          <Route path="signup" element={<UserAuthForm type="sign-up" />} />
-          <Route path="search/:query" element={<SearchPage />} />
-          <Route path="user/:id" element={<ProfilePage />} />
-          <Route path="blog/:blog_id" element={<BlogPage />} />
-          <Route path="*" element={<PageNotFound />} />
-        </Route>
-      </Routes>
+        <Routes>
+          <Route path="/editor" element={<Editor />}/>
+          <Route path="/" element={<Navbar />}>
+            <Route index element={<HomePage />} />
+            <Route path="signin" element={<UserAuthForm type="sign-in" />} />
+            <Route path="signup" element={<UserAuthForm type="sign-up" />} />
+            <Route path="search/:query" element={<SearchPage />} />
+            <Route path="user/:id" element={<ProfilePage />} />
+            <Route path="blog/:blog_id" element={<BlogPage />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Route>
+        </Routes>
     </UserContextProvider>
   );
 };
