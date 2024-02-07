@@ -13,6 +13,7 @@ router.post('/filter-blog-count', blogController.filterBlogCount);
 router.post("/search-blog", blogController.searchBlog);
 router.post("/search-blog-count", blogController.searchBlogCount);
 router.post("/create-blog", verifyJWT, blogController.createBlog);
+router.post("/get-blog", blogController.getBlog);
 
 export default router;
 
